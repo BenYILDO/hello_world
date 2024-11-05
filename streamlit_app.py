@@ -1,48 +1,48 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import altair as alt
 
 # Başlık ve açıklama
-st.title("Talep Tahmin Görselleştirme Uygulaması")
+st.title("Satış Verisi ve Talep Tahmin Uygulaması")
 st.write("""
-Bu uygulama, geçmiş satış verilerine dayalı tahmin edilen talepleri görselleştirir.
+Bu uygulamada, elle girdiğiniz satış verilerine dayalı olarak talep tahmini yapılır.
+Ayrıca verilerin analizi için kullanılan formülleri ve açıklamaları görebilirsiniz.
 """)
 
-# Veri yükleme veya veri oluşturma
-def veri_yarat():
-    tarih = pd.date_range(start="2023-01-01", periods=30, freq="D")
-    satis_miktari = np.random.randint(50, 200, size=len(tarih))
-    tahmin_edilen_talep = satis_miktari + np.random.normal(0, 10, size=len(tarih))
-    
-    veri = pd.DataFrame({
-        "Tarih": tarih,
-        "satis_miktari": satis_miktari,
-        "Tahmin": tahmin_edilen_talep
+# Satış verilerini elle girebilmek için input alanları
+st.subheader("Satış Verilerini Girin")
+
+# Tarih ve satış miktarını alacak alanlar
+tarih_girdisi = st.date_input("Tarih Girin", value=pd.to_datetime("2023-01-01"))
+satis_miktari_girdisi = st.number_input("Satış Miktarı Girin", min_value=0, value=100)
+
+# Boş bir veri çerçevesi oluşturma veya mevcut veriyi yükleme
+if "veri" not in st.session_state:
+    st.session_state["veri"] = pd.DataFrame(columns=["Tarih", "satis_miktari", "Tahmin"])
+
+# Kullanıcının girdiği veriyi tabloya ekleme
+if st.button("Veriyi Ekle"):
+    yeni_veri = pd.DataFrame({
+        "Tarih": [tarih_girdisi],
+        "satis_miktari": [satis_miktari_girdisi],
+        "Tahmin": [satis_miktari_girdisi + np.random.normal(0, 10)]
     })
-    return veri
+    st.session_state["veri"] = pd.concat([st.session_state["veri"], yeni_veri], ignore_index=True)
 
-# Veri yüklenmesi
-veri = veri_yarat()
+# Güncel tabloyu gösterme
+st.subheader("Girilen Satış ve Tahmin Verisi")
+st.write(st.session_state["veri"])
 
-# Veri gösterimi
-st.subheader("Satış ve Tahmin Verisi")
-st.write(veri)
+# Açıklamalar ve analiz
+st.subheader("Analiz ve Kullanılan Formüller")
+st.write("""
+Talep tahmini için kullanılan formül:
 
-# Altair ile grafik oluşturma
-st.subheader("Talep Tahmini Grafiği")
-c = alt.Chart(veri.reset_index()).mark_line().encode(
-    x='Tarih:T',
-    y='satis_miktari:Q',
-    color=alt.value("blue"),
-    tooltip=['Tarih', 'satis_miktari']
-).properties(title="Gerçek Satış Verisi")
+- **Talep Tahmini = Satış Miktarı + Rastgele Gürültü (μ=0, σ=10)**
 
-t = alt.Chart(veri.reset_index()).mark_line(strokeDash=[5,5], color="red").encode(
-    x='Tarih:T',
-    y='Tahmin:Q',
-    tooltip=['Tarih', 'Tahmin']
-)
+Bu formül, mevcut satış verisine dayalı olarak rastgele bir gürültü eklenerek tahmin edilen talebi oluşturur.
+Böylece talep tahmininde küçük bir varyasyon göz önünde bulundurulur.
 
-# Grafik gösterme
-st.altair_chart(c + t, use_container_width=True)
+Girilen her veri için yukarıdaki formül uygulanarak tahmin hesaplanmaktadır. 
+Bu tahmin, satış verisinin girdiğiniz miktarına göre ±10 birimlik bir sapma ile belirlenmiştir.
+""")
