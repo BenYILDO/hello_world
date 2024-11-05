@@ -2,14 +2,12 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 
-# Başlık ve genel açıklama
 st.title("Satış Verisi Analizi ve Tahmin Uygulaması")
 st.write("""
 Bu uygulama, manuel olarak girdiğiniz satış verileri üzerinde analiz yapar ve gelecek için basit bir tahmin modeli sunar.
 Satış verilerini girerek, grafik ve tahmin sonuçlarını gözlemleyebilirsiniz.
 """)
 
-# Satış verilerini girmek için input alanları
 st.subheader("Satış Verilerini Girin")
 tarih_girdisi = st.date_input("Tarih Girin", value=pd.to_datetime("2023-01-01"))
 satis_miktari_girdisi = st.number_input("Satış Miktarı Girin", min_value=0, value=100)
